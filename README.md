@@ -116,7 +116,6 @@ docker-compose -f docker/docker-compose.yml up --build
 - Backend: `http://localhost:8000`
 - Frontend: `http://localhost:8501`
 
+
 ---
 
-## 📜 License
-This project is licensed under the MIT License.
