@@ -17,15 +17,21 @@ class ClaimService:
     """Master orchestration service for Healthcare Insurance Claim adjudication."""
 
     @staticmethod
-    def process_and_create_claim(db: Session, claim_in: ClaimCreate, user_email: str = "system") -> Claim:
+    def process_and_create_claim(db: Session, claim_in: ClaimCreate, tenant_id: str, user_email: str = "system") -> Claim:
         # 1. Fetch related domain entities
-        patient = db.query(Patient).filter(Patient.id == claim_in.patient_id).first()
+        patient = db.query(Patient).filter(
+            Patient.id == claim_in.patient_id,
+            Patient.tenant_id == tenant_id
+        ).first()
         if not patient:
-            raise ValueError(f"Patient ID {claim_in.patient_id} not found.")
+            raise ValueError(f"Patient ID {claim_in.patient_id} not found or does not belong to active tenant.")
 
-        hospital = db.query(Hospital).filter(Hospital.id == claim_in.hospital_id).first()
+        hospital = db.query(Hospital).filter(
+            Hospital.id == claim_in.hospital_id,
+            Hospital.tenant_id == tenant_id
+        ).first()
         if not hospital:
-            raise ValueError(f"Hospital ID {claim_in.hospital_id} not found.")
+            raise ValueError(f"Hospital ID {claim_in.hospital_id} not found or does not belong to active tenant.")
 
         primary_policy = db.query(Policy).filter(Policy.id == claim_in.primary_policy_id).first()
         if not primary_policy:
@@ -111,11 +117,13 @@ class ClaimService:
                     "adjustments": rule_res.cap_adjustments
                 },
                 "fraud_evaluation": fraud_res
-            }
+            },
+            tenant_id=tenant_id
         )
         db.add(db_claim)
         db.commit()
         db.refresh(db_claim)
+
 
         # 6. Create Claim Line Items
         for item_in in claim_in.items:
