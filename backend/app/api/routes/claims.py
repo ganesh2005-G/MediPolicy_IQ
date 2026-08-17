@@ -22,6 +22,18 @@ def submit_and_process_claim(
     """Submit a claim for automated AI adjudication, COB calculation, and fraud analysis."""
     try:
         claim = ClaimService.process_and_create_claim(db=db, claim_in=claim_in, tenant_id=tenant.tenant_id)
+        
+        # Log audit entry
+        from app.database.audit import log_audit_action
+        log_audit_action(
+            db=db,
+            tenant_id=tenant.tenant_id,
+            action="SUBMIT_CLAIM",
+            entity_type="CLAIM",
+            entity_id=claim.id,
+            details=f"Submitted claim {claim.claim_number} for Patient ID {claim.patient_id}. Auto-status: {claim.status}. Billed: {claim.total_billed_amount}."
+        )
+
         return claim
     except ValueError as ve:
         raise HTTPException(status_code=400, detail=str(ve))
@@ -106,6 +118,7 @@ def update_claim_status(
         claim.decision_explanation = explanation
 
     audit = AuditLog(
+        tenant_id=tenant.tenant_id,
         user_email="processor",
         action="MANUAL_STATUS_UPDATE",
         entity_type="CLAIM",

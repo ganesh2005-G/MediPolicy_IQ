@@ -79,4 +79,17 @@ def onboard_tenant(tenant_in: TenantCreate, db: Session = Depends(get_db)):
     db.add(admin_user)
     db.commit()
 
+    # 6. Log Audit Action
+    from app.database.audit import log_audit_action
+    log_audit_action(
+        db=db,
+        tenant_id=tenant_in.tenant_id,
+        action="ONBOARD_ORGANIZATION",
+        entity_type="TENANT",
+        entity_id=tenant_in.tenant_id,
+        user_email=tenant_in.admin_email,
+        details=f"Onboarded organization '{tenant_in.name}' of type {tenant_in.tenant_type}."
+    )
+
     return tenant
+

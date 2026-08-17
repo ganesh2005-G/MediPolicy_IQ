@@ -241,3 +241,17 @@ class TenantResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
+class AuditLogResponse(BaseModel):
+    id: int
+    tenant_id: Optional[str] = None
+    user_email: Optional[str] = None
+    action: str
+    entity_type: str
+    entity_id: Optional[str] = None
+    details: Optional[str] = None
+    timestamp: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+

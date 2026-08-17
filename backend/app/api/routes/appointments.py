@@ -85,6 +85,18 @@ def book_appointment(
     db.add(appointment)
     db.commit()
     db.refresh(appointment)
+
+    # Log audit entry
+    from app.database.audit import log_audit_action
+    log_audit_action(
+        db=db,
+        tenant_id=tenant.tenant_id,
+        action="BOOK_APPOINTMENT",
+        entity_type="APPOINTMENT",
+        entity_id=appointment.id,
+        details=f"Booked appointment {appointment.appointment_code} for {appointment.patient_name} with {appointment.doctor_name}."
+    )
+
     return appointment
 
 
@@ -141,6 +153,18 @@ def reschedule_appointment(
     appt.status = "RESCHEDULED"
     db.commit()
     db.refresh(appt)
+
+    # Log audit entry
+    from app.database.audit import log_audit_action
+    log_audit_action(
+        db=db,
+        tenant_id=tenant.tenant_id,
+        action="RESCHEDULE_APPOINTMENT",
+        entity_type="APPOINTMENT",
+        entity_id=appt.id,
+        details=f"Rescheduled appointment {appt.appointment_code} to {appt.appointment_date} at {appt.appointment_time}."
+    )
+
     return appt
 
 
@@ -163,8 +187,22 @@ def update_appointment_status(
     if status not in valid_states:
         raise HTTPException(status_code=400, detail=f"Invalid status. Must be one of {valid_states}")
 
+    old_status = appt.status
     appt.status = status
     db.commit()
     db.refresh(appt)
+
+    # Log audit entry
+    from app.database.audit import log_audit_action
+    log_audit_action(
+        db=db,
+        tenant_id=tenant.tenant_id,
+        action="UPDATE_APPOINTMENT_STATUS",
+        entity_type="APPOINTMENT",
+        entity_id=appt.id,
+        details=f"Updated appointment {appt.appointment_code} status from {old_status} to {status}."
+    )
+
     return appt
+
 
