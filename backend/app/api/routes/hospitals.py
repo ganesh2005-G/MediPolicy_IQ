@@ -22,6 +22,8 @@ class DoctorCreate(BaseModel):
 
 
 from pydantic import BaseModel, ConfigDict
+from app.tenants.context import get_current_tenant
+from app.models.models import Tenant
 
 class DoctorResponse(DoctorCreate):
     id: int
@@ -30,15 +32,21 @@ class DoctorResponse(DoctorCreate):
     model_config = ConfigDict(from_attributes=True)
 
 
-
 @router.post("/", response_model=HospitalResponse)
-def create_hospital(hospital_in: HospitalCreate, db: Session = Depends(get_db)):
+def create_hospital(
+    hospital_in: HospitalCreate,
+    db: Session = Depends(get_db),
+    tenant: Tenant = Depends(get_current_tenant)
+):
     """Create a new hospital facility record."""
-    existing = db.query(Hospital).filter(Hospital.hospital_code == hospital_in.hospital_code).first()
+    existing = db.query(Hospital).filter(
+        Hospital.hospital_code == hospital_in.hospital_code,
+        Hospital.tenant_id == tenant.tenant_id
+    ).first()
     if existing:
         raise HTTPException(status_code=400, detail="Hospital code already exists.")
 
-    hospital = Hospital(**hospital_in.model_dump())
+    hospital = Hospital(**hospital_in.model_dump(), tenant_id=tenant.tenant_id)
     db.add(hospital)
     db.commit()
     db.refresh(hospital)
@@ -46,29 +54,43 @@ def create_hospital(hospital_in: HospitalCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/", response_model=List[HospitalResponse])
-def list_hospitals(db: Session = Depends(get_db)):
-    """List all registered hospitals."""
-    return db.query(Hospital).all()
+def list_hospitals(
+    db: Session = Depends(get_db),
+    tenant: Tenant = Depends(get_current_tenant)
+):
+    """List registered hospitals for the active tenant."""
+    return db.query(Hospital).filter(Hospital.tenant_id == tenant.tenant_id).all()
 
 
 @router.get("/doctors", response_model=List[DoctorResponse])
-def list_doctors(db: Session = Depends(get_db)):
-    """List all hospital doctors and medical specialists."""
-    return db.query(Doctor).all()
+def list_doctors(
+    db: Session = Depends(get_db),
+    tenant: Tenant = Depends(get_current_tenant)
+):
+    """List hospital doctors and medical specialists for the active tenant."""
+    return db.query(Doctor).filter(Doctor.tenant_id == tenant.tenant_id).all()
 
 
 @router.post("/doctors", response_model=DoctorResponse)
-def add_doctor(doc_in: DoctorCreate, db: Session = Depends(get_db)):
-    """Add a new doctor to the hospital directory."""
-    existing = db.query(Doctor).filter(Doctor.doctor_code == doc_in.doctor_code).first()
+def add_doctor(
+    doc_in: DoctorCreate,
+    db: Session = Depends(get_db),
+    tenant: Tenant = Depends(get_current_tenant)
+):
+    """Add a new doctor to the hospital directory under the active tenant."""
+    existing = db.query(Doctor).filter(
+        Doctor.doctor_code == doc_in.doctor_code,
+        Doctor.tenant_id == tenant.tenant_id
+    ).first()
     if existing:
         raise HTTPException(status_code=400, detail="Doctor code already exists.")
 
-    doc = Doctor(**doc_in.model_dump())
+    doc = Doctor(**doc_in.model_dump(), tenant_id=tenant.tenant_id)
     db.add(doc)
     db.commit()
     db.refresh(doc)
     return doc
+
 
 
 @router.get("/diseases")
