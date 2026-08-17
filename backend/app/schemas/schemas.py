@@ -29,6 +29,7 @@ class UserResponse(BaseModel):
     full_name: str
     role: str
     is_active: bool
+    tenant_id: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 

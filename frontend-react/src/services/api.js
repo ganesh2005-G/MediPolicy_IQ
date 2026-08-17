@@ -9,11 +9,15 @@ const api = axios.create({
   },
 });
 
-// Interceptor to attach JWT token to outgoing requests
+// Interceptor to attach JWT token and X-Tenant-ID to outgoing requests
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+  }
+  const tenantId = localStorage.getItem('tenant_id');
+  if (tenantId) {
+    config.headers['X-Tenant-ID'] = tenantId;
   }
   return config;
 }, (error) => Promise.reject(error));

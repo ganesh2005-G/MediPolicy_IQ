@@ -93,3 +93,32 @@ def onboard_tenant(tenant_in: TenantCreate, db: Session = Depends(get_db)):
 
     return tenant
 
+
+@router.get("/config")
+def get_tenant_branding_config(
+    db: Session = Depends(get_db),
+    tenant: Tenant = Depends(get_current_tenant)
+):
+    """Retrieve color codes, branding logo, and active feature configurations for the requesting organization."""
+    config = db.query(TenantConfiguration).filter(TenantConfiguration.tenant_id == tenant.tenant_id).first()
+    return {
+        "tenant_id": tenant.tenant_id,
+        "name": tenant.name,
+        "tenant_type": tenant.tenant_type,
+        "primary_color": tenant.primary_color or "#0ea5e9",
+        "secondary_color": tenant.secondary_color or "#0284c7",
+        "logo_url": tenant.logo_url,
+        "features": config.features if config else {"claims": True, "ocr": True, "ai_assistant": True},
+        "ai_config": config.ai_config if config else {
+            "assistant_name": f"{tenant.name} AI",
+            "tone": "professional",
+            "instructions": ""
+        },
+        "operating_hours": config.operating_hours if config else {
+            "opd_start": "09:00",
+            "opd_end": "18:00",
+            "emergency_service": True
+        }
+    }
+
+

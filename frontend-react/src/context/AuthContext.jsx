@@ -13,6 +13,9 @@ export const AuthProvider = ({ children }) => {
       if (token) {
         try {
           const userData = await authAPI.getCurrentUser();
+          if (userData && userData.tenant_id) {
+            localStorage.setItem('tenant_id', userData.tenant_id);
+          }
           setUser(userData);
         } catch (err) {
           console.error("Auth session expired", err);
@@ -33,6 +36,9 @@ export const AuthProvider = ({ children }) => {
     
     // Fetch profile
     const profile = await authAPI.getCurrentUser();
+    if (profile && profile.tenant_id) {
+      localStorage.setItem('tenant_id', profile.tenant_id);
+    }
     setUser(profile);
     return profile;
   };
@@ -41,6 +47,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token');
     localStorage.removeItem('user_role');
     localStorage.removeItem('user_email');
+    localStorage.removeItem('tenant_id');
     setToken(null);
     setUser(null);
   };
