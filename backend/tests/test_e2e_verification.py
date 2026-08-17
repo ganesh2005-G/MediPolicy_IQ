@@ -18,6 +18,7 @@ def test_full_e2e_flow():
         # Generate token and default headers
         admin_token = create_access_token(subject="admin@medipolicy.iq", role="admin")
         headers = {"Authorization": f"Bearer {admin_token}", "X-Tenant-ID": "hospital_001"}
+        headers_insurer = {"Authorization": f"Bearer {admin_token}", "X-Tenant-ID": "insurer_001"}
 
         # 2. Patients API
         res = client.get("/api/v1/patients/", headers=headers)
@@ -26,7 +27,8 @@ def test_full_e2e_flow():
         assert len(patients) > 0, "Database seeding should populate patients on startup"
 
         # 3. Policies API
-        res = client.get("/api/v1/policies/", headers=headers)
+        res = client.get("/api/v1/policies/", headers=headers_insurer)
+
         assert res.status_code == 200
         policies = res.json()
         assert len(policies) > 0, "Database seeding should populate policies on startup"
