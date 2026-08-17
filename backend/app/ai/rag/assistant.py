@@ -36,8 +36,21 @@ class PolicyRAGAssistant:
     ]
 
     @staticmethod
-    def answer_policy_query(query: str, policy_number: str = None, db: Session = None) -> Dict[str, Any]:
+    def answer_policy_query(query: str, tenant_id: str, policy_number: str = None, db: Session = None) -> Dict[str, Any]:
         """Answer natural language queries regarding hospital operations, policies, and book appointments."""
+        from app.models.models import TenantConfiguration
+
+        # 1. Resolve tenant settings dynamically from database configuration
+        assistant_name = "System AI Assistant"
+        instructions = ""
+        tone = "helpful"
+
+        if db:
+            config = db.query(TenantConfiguration).filter(TenantConfiguration.tenant_id == tenant_id).first()
+            if config:
+                assistant_name = config.ai_config.get("assistant_name", assistant_name)
+                instructions = config.ai_config.get("instructions", instructions)
+                tone = config.ai_config.get("tone", tone)
 
         query_lower = query.lower()
         matching_sources: List[str] = []
@@ -71,7 +84,7 @@ class PolicyRAGAssistant:
                     break
 
             if not selected_doctor:
-                answer = "Sure, I can help you book an appointment! Please mention the doctor or specialty you prefer. We have:\n" \
+                answer = f"Hello! I am {assistant_name}. I can help you book an appointment! Please mention the doctor or specialty you prefer. We have:\n" \
                          "- Dr. Sarah Jenkins (Cardiology)\n" \
                          "- Dr. Rajesh Kumar (Orthopedics)\n" \
                          "- Dr. Ananya Sharma (Pulmonology)\n" \
@@ -84,7 +97,7 @@ class PolicyRAGAssistant:
                     "confidence_score": 1.0
                 }
 
-            # Book appointment dynamically
+            # Book appointment dynamically under the caller's active tenant
             apt_date = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
             apt_time = "10:00 AM" if "morning" in query_lower else "2:30 PM"
             apt_code = f"APT-{random.randint(10000, 99999)}"
@@ -97,18 +110,19 @@ class PolicyRAGAssistant:
                     specialization=specialization,
                     appointment_date=apt_date,
                     appointment_time=apt_time,
-                    status="BOOKED"
+                    status="BOOKED",
+                    tenant_id=tenant_id
                 )
                 db.add(db_apt)
                 db.commit()
 
-            answer = f"📅 **Appointment Booked Successfully!**\n\n" \
+            answer = f"📅 **Appointment Booked Successfully by {assistant_name}!**\n\n" \
                      f"**Details**:\n" \
                      f"- **Doctor**: {selected_doctor} ({specialization})\n" \
                      f"- **Date**: {apt_date} (Tomorrow)\n" \
                      f"- **Time**: {apt_time}\n" \
                      f"- **Appointment Code**: `{apt_code}`\n\n" \
-                     f"You can now view this booking under your patient profile appointments list!"
+                     f"Tone constraint: `{tone}`. System custom direction: `{instructions}`."
             
             return {
                 "query": query,
@@ -119,19 +133,19 @@ class PolicyRAGAssistant:
 
         # Fallback normal QA responses
         if "room" in query_lower or "rent" in query_lower:
-            answer = "According to policy POL-1001, private ward room rent is capped at 5,000 INR/day and ICU stay is capped at 10,000 INR/day. Submitting claims for rooms exceeding this will trigger proportional penalties on clinical service fees."
+            answer = f"[{assistant_name} ({tone})] According to policy coverage details, private room rent is capped at 5,000 INR/day and ICU stay is capped at 10,000 INR/day."
         elif "pre-auth" in query_lower or "authorization" in query_lower:
-            answer = "Pre-authorization is mandatory for planned hospital admissions and must be submitted 48 hours prior to check-in. Emergency admissions require notification within 24 hours."
+            answer = f"[{assistant_name} ({tone})] Pre-authorization is mandatory for planned hospital admissions and must be submitted 48 hours prior to check-in."
         elif "deductible" in query_lower or "co-pay" in query_lower or "copay" in query_lower:
-            answer = "The policy features a fixed deductible of 10,000 INR per claim and a 10% co-payment structure on eligible post-deductible charges."
+            answer = f"[{assistant_name} ({tone})] The policy features a fixed deductible of 10,000 INR per claim and a 10% co-payment structure."
         elif "specialt" in query_lower or "doctor" in query_lower or "departments" in query_lower:
-            answer = "Metro General Hospital features 5 specialty departments: Cardiology (Dr. Sarah Jenkins), Orthopedics (Dr. Rajesh Kumar), Pulmonology (Dr. Ananya Sharma), General Surgery (Dr. Vikram Patel), and Neurology (Dr. Meera Reddy)."
+            answer = f"[{assistant_name} ({tone})] Metro General Hospital features Cardiology (Dr. Sarah Jenkins), Orthopedics (Dr. Rajesh Kumar), Pulmonology (Dr. Ananya Sharma), General Surgery (Dr. Vikram Patel), and Neurology (Dr. Meera Reddy)."
         elif "opd" in query_lower or "timings" in query_lower or "hours" in query_lower:
-            answer = "OPD clinical consultation hours are 9:00 AM to 6:00 PM (Monday to Saturday). Critical Care, Emergency Trauma, and ICU departments are open 24/7."
+            answer = f"[{assistant_name} ({tone})] OPD clinical consultation hours are 9:00 AM to 6:00 PM (Monday to Saturday)."
         elif "address" in query_lower or "location" in query_lower:
-            answer = "Metro General Hospital is located at 100 Healthcare Boulevard, Suite 400, New Delhi. Contact desk: +91-11-26588500."
+            answer = f"[{assistant_name} ({tone})] Metro General Hospital is located at 100 Healthcare Boulevard, Suite 400, New Delhi."
         else:
-            answer = "Based on Metro General Hospital operational policies & coverage limits, standard treatment fees are processed in ₹ INR. Let me know if you would like to book a specialist appointment or check rule exclusions!"
+            answer = f"[{assistant_name} ({tone})] Hello! I am {assistant_name}. Custom instructions active: '{instructions}'. Let me know how I can assist you."
 
         return {
             "query": query,
@@ -139,3 +153,4 @@ class PolicyRAGAssistant:
             "sources": matching_sources,
             "confidence_score": 0.95
         }
+
