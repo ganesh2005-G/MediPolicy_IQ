@@ -26,9 +26,51 @@ class AppointmentResponse(AppointmentCreate):
     model_config = ConfigDict(from_attributes=True)
 
 
+from app.tenants.context import get_current_tenant
+from app.models.models import Tenant
+
+class RescheduleRequest(BaseModel):
+    appointment_date: str
+    appointment_time: str
+
+
 @router.post("/", response_model=AppointmentResponse)
-def book_appointment(appointment_in: AppointmentCreate, db: Session = Depends(get_db)):
-    """Book a new doctor appointment."""
+def book_appointment(
+    appointment_in: AppointmentCreate,
+    db: Session = Depends(get_db),
+    tenant: Tenant = Depends(get_current_tenant)
+):
+    """Book a new doctor appointment with availability and double booking checks."""
+    # 1. Validate operating hours (09:00 to 18:00)
+    try:
+        time_parts = appointment_in.appointment_time.split(":")
+        hour = int(time_parts[0])
+        if hour < 9 or hour >= 18:
+            raise HTTPException(
+                status_code=400,
+                detail="Appointments can only be booked during standard operating hours (09:00 to 18:00)."
+            )
+    except (ValueError, IndexError):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid appointment time format. Must be HH:MM in 24-hour style."
+        )
+
+    # 2. Check double booking
+    double_booked = db.query(Appointment).filter(
+        Appointment.doctor_name == appointment_in.doctor_name,
+        Appointment.appointment_date == appointment_in.appointment_date,
+        Appointment.appointment_time == appointment_in.appointment_time,
+        Appointment.tenant_id == tenant.tenant_id,
+        Appointment.status.in_(["BOOKED", "CONFIRMED", "RESCHEDULED"])
+    ).first()
+
+    if double_booked:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Doctor '{appointment_in.doctor_name}' is already booked at {appointment_in.appointment_time} on {appointment_in.appointment_date}."
+        )
+
     appointment_code = f"APT-{random.randint(10000, 99999)}"
     appointment = Appointment(
         appointment_code=appointment_code,
@@ -37,7 +79,8 @@ def book_appointment(appointment_in: AppointmentCreate, db: Session = Depends(ge
         specialization=appointment_in.specialization,
         appointment_date=appointment_in.appointment_date,
         appointment_time=appointment_in.appointment_time,
-        status="BOOKED"
+        status="BOOKED",
+        tenant_id=tenant.tenant_id
     )
     db.add(appointment)
     db.commit()
@@ -46,6 +89,82 @@ def book_appointment(appointment_in: AppointmentCreate, db: Session = Depends(ge
 
 
 @router.get("/", response_model=List[AppointmentResponse])
-def list_appointments(db: Session = Depends(get_db)):
-    """List all scheduled appointments."""
-    return db.query(Appointment).order_by(Appointment.created_at.desc()).all()
+def list_appointments(
+    db: Session = Depends(get_db),
+    tenant: Tenant = Depends(get_current_tenant)
+):
+    """List all scheduled appointments for the active tenant."""
+    return db.query(Appointment).filter(Appointment.tenant_id == tenant.tenant_id).order_by(Appointment.created_at.desc()).all()
+
+
+@router.put("/{appointment_id}/reschedule", response_model=AppointmentResponse)
+def reschedule_appointment(
+    appointment_id: int,
+    res_in: RescheduleRequest,
+    db: Session = Depends(get_db),
+    tenant: Tenant = Depends(get_current_tenant)
+):
+    """Reschedule an existing appointment subject to double-booking prevention."""
+    appt = db.query(Appointment).filter(
+        Appointment.id == appointment_id,
+        Appointment.tenant_id == tenant.tenant_id
+    ).first()
+    if not appt:
+        raise HTTPException(status_code=404, detail="Appointment not found.")
+
+    # Validate operating hours
+    try:
+        hour = int(res_in.appointment_time.split(":")[0])
+        if hour < 9 or hour >= 18:
+            raise HTTPException(status_code=400, detail="OPD hours are 09:00 to 18:00.")
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid HH:MM format.")
+
+    # Check double booking
+    double_booked = db.query(Appointment).filter(
+        Appointment.doctor_name == appt.doctor_name,
+        Appointment.appointment_date == res_in.appointment_date,
+        Appointment.appointment_time == res_in.appointment_time,
+        Appointment.tenant_id == tenant.tenant_id,
+        Appointment.id != appointment_id,
+        Appointment.status.in_(["BOOKED", "CONFIRMED", "RESCHEDULED"])
+    ).first()
+
+    if double_booked:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Doctor is already booked at {res_in.appointment_time} on {res_in.appointment_date}."
+        )
+
+    appt.appointment_date = res_in.appointment_date
+    appt.appointment_time = res_in.appointment_time
+    appt.status = "RESCHEDULED"
+    db.commit()
+    db.refresh(appt)
+    return appt
+
+
+@router.put("/{appointment_id}/status", response_model=AppointmentResponse)
+def update_appointment_status(
+    appointment_id: int,
+    status: str,
+    db: Session = Depends(get_db),
+    tenant: Tenant = Depends(get_current_tenant)
+):
+    """Update appointment status (BOOKED, CONFIRMED, COMPLETED, CANCELLED, RESCHEDULED, NO_SHOW)."""
+    appt = db.query(Appointment).filter(
+        Appointment.id == appointment_id,
+        Appointment.tenant_id == tenant.tenant_id
+    ).first()
+    if not appt:
+        raise HTTPException(status_code=404, detail="Appointment not found.")
+
+    valid_states = ["BOOKED", "CONFIRMED", "COMPLETED", "CANCELLED", "RESCHEDULED", "NO_SHOW"]
+    if status not in valid_states:
+        raise HTTPException(status_code=400, detail=f"Invalid status. Must be one of {valid_states}")
+
+    appt.status = status
+    db.commit()
+    db.refresh(appt)
+    return appt
+
