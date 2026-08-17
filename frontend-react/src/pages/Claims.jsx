@@ -9,17 +9,25 @@ const Claims = () => {
   const [expandedClaim, setExpandedClaim] = useState(null);
 
   // Form State
-  const [patientId, setPatientId] = useState(1);
-  const [hospitalId, setHospitalId] = useState(1);
-  const [primaryPolicyId, setPrimaryPolicyId] = useState(1);
+  const [patientId, setPatientId] = useState('');
+  const [hospitalId, setHospitalId] = useState('');
+  const [primaryPolicyId, setPrimaryPolicyId] = useState('');
   const [claimType, setClaimType] = useState('INPATIENT');
-  const [diagnosisCode, setDiagnosisCode] = useState('ICD10-J18.9');
+  const [diagnosisCode, setDiagnosisCode] = useState('');
 
   const [items, setItems] = useState([
-    { item_description: 'Standard Room Rent (4 days)', category: 'ROOM', cpt_code: '99291', billed_amount: 28000 },
-    { item_description: 'ICU Support & Monitoring', category: 'ICU', cpt_code: '99291', billed_amount: 35000 },
-    { item_description: 'Laparoscopic Surgery', category: 'PROCEDURE', cpt_code: '47562', billed_amount: 65000 },
+    { item_description: '', category: '', cpt_code: '', billed_amount: '' }
   ]);
+
+  const handleAddItem = () => {
+    setItems((prev) => [...prev, { item_description: '', category: '', cpt_code: '', billed_amount: '' }]);
+  };
+
+  const handleRemoveItem = (index) => {
+    if (items.length > 1) {
+      setItems((prev) => prev.filter((_, idx) => idx !== index));
+    }
+  };
 
   const loadClaims = async () => {
     try {
@@ -213,23 +221,48 @@ const Claims = () => {
               </div>
 
               <div style={{ marginTop: '1.5rem', marginBottom: '1.5rem' }}>
-                <h4 style={{ fontSize: '0.95rem', fontWeight: '700', marginBottom: '0.75rem' }}>Claim Line Items</h4>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                  <h4 style={{ fontSize: '0.95rem', fontWeight: '700', margin: 0 }}>Claim Line Items</h4>
+                  <button type="button" onClick={handleAddItem} className="btn btn-secondary" style={{ padding: '0.25rem 0.5rem', fontSize: '0.75rem' }}>
+                    + Add Line Item
+                  </button>
+                </div>
+                
                 {items.map((it, idx) => (
-                  <div key={idx} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                    <input type="text" className="input-field" placeholder="Description" value={it.item_description} onChange={(e) => {
+                  <div key={idx} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr auto', gap: '0.5rem', marginBottom: '0.5rem', alignItems: 'center' }}>
+                    <input type="text" className="input-field" placeholder="Description (e.g. Bed Charge)" value={it.item_description} onChange={(e) => {
                       const copy = [...items]; copy[idx].item_description = e.target.value; setItems(copy);
-                    }} />
-                    <input type="text" className="input-field" placeholder="Category" value={it.category} onChange={(e) => {
-                      const copy = [...items]; copy[idx].category = e.target.value; setItems(copy);
-                    }} />
+                    }} required />
+                    <input type="text" className="input-field" placeholder="Category (e.g. ROOM)" value={it.category} onChange={(e) => {
+                      const copy = [...items]; copy[idx].category = e.target.value.toUpperCase(); setItems(copy);
+                    }} required />
                     <input type="text" className="input-field" placeholder="CPT Code" value={it.cpt_code} onChange={(e) => {
                       const copy = [...items]; copy[idx].cpt_code = e.target.value; setItems(copy);
-                    }} />
+                    }} required />
                     <input type="number" className="input-field" placeholder="Billed ($)" value={it.billed_amount} onChange={(e) => {
                       const copy = [...items]; copy[idx].billed_amount = Number(e.target.value); setItems(copy);
-                    }} />
+                    }} required />
+                    
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveItem(idx)}
+                      disabled={items.length <= 1}
+                      style={{
+                        padding: '0.35rem 0.5rem',
+                        fontSize: '0.75rem',
+                        background: 'rgba(239, 68, 68, 0.1)',
+                        border: '1px solid var(--accent-rose)',
+                        color: 'var(--accent-rose)',
+                        borderRadius: 'var(--radius-sm)',
+                        cursor: items.length <= 1 ? 'not-allowed' : 'pointer',
+                        opacity: items.length <= 1 ? 0.5 : 1
+                      }}
+                    >
+                      Remove
+                    </button>
                   </div>
                 ))}
+                
                 <div style={{ textAlign: 'right', marginTop: '0.5rem', fontWeight: '700', color: 'var(--accent-cyan)' }}>
                   Total Billed: ${totalBilled.toLocaleString()}
                 </div>
