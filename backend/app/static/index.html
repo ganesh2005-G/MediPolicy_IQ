@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediPolicy_IQ - Hospital & Insurance Intelligence Portal</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- React 18, ReactDOM 18, Babel standalone, Axios -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+  <style>
+    :root {
+      --font-heading: 'Outfit', sans-serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+
+      --bg-primary: #0b0f19;
+      --bg-secondary: #111827;
+      --bg-card: rgba(17, 24, 39, 0.75);
+      --bg-card-hover: rgba(31, 41, 55, 0.85);
+
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-glow: rgba(59, 130, 246, 0.3);
+
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+
+      --accent-blue: #3b82f6;
+      --accent-cyan: #06b6d4;
+      --accent-teal: #14b8a6;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --accent-purple: #8b5cf6;
+
+      --gradient-brand: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+      --radius-full: 9999px;
+      --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-body);
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+
+    h1, h2, h3, h4 { font-family: var(--font-heading); }
+
+    .glass-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-card);
+      padding: 1.5rem;
+      transition: all 0.25s ease;
+    }
+
+    .glass-card:hover {
+      border-color: var(--border-glow);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.65rem 1.3rem;
+      font-family: var(--font-heading);
+      font-size: 0.925rem;
+      font-weight: 600;
+      border-radius: var(--radius-md);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .btn-primary { background: var(--gradient-brand); color: #ffffff; box-shadow: 0 4px 15px rgba(6, 182, 212, 0.25); }
+    .btn-primary:hover { opacity: 0.92; transform: translateY(-1px); }
+    .btn-secondary { background: rgba(255, 255, 255, 0.06); color: var(--text-primary); border-color: var(--border-color); }
+    .btn-secondary:hover { background: rgba(255, 255, 255, 0.12); }
+    .btn-success { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+    .btn-success:hover { background: rgba(16, 185, 129, 0.35); }
+    .btn-danger { background: rgba(244, 63, 94, 0.2); color: #f87171; border: 1px solid rgba(244, 63, 94, 0.4); }
+    .btn-danger:hover { background: rgba(244, 63, 94, 0.35); }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      border-radius: var(--radius-full);
+      text-transform: uppercase;
+    }
+
+    .badge-approved { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .badge-partially { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+    .badge-review { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge-fraud { background: rgba(244, 63, 94, 0.15); color: #f87171; border: 1px solid rgba(244, 63, 94, 0.3); }
+
+    .input-group { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1.1rem; }
+    .input-label { font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); }
+    .input-field {
+      width: 100%;
+      padding: 0.7rem 1rem;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      outline: none;
+    }
+    .input-field:focus { border-color: var(--accent-cyan); }
+
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.25rem; }
+
+    @media (max-width: 900px) {
+      .grid-4, .grid-3, .grid-2 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    const API_BASE = '/api/v1';
+
+    // Formatter for Indian Rupee (INR) Currency
+    const formatINR = (amount) => {
+      const num = Number(amount || 0);
+      return '₹' + num.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+    };
+
+    // Global Auth Helper
+    const authHelper = {
+      getToken: () => localStorage.getItem('token'),
+      getUser: () => JSON.parse(localStorage.getItem('user') || 'null'),
+      setAuth: (token, user) => {
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+      },
+      clear: () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
+    };
+
+    // Main React Application
+    function App() {
+      const [user, setUser] = useState(authHelper.getUser());
+      const [activeTab, setActiveTab] = useState('dashboard');
+
+      const handleLoginSuccess = (token, userObj) => {
+        authHelper.setAuth(token, userObj);
+        setUser(userObj);
+        setActiveTab(userObj.role === 'patient' ? 'patient-portal' : (userObj.role === 'claim_processor' ? 'processor-portal' : 'dashboard'));
+      };
+
+      const handleLogout = () => {
+        authHelper.clear();
+        setUser(null);
+      };
+
+      if (!user) {
+        return <LoginScreen onLoginSuccess={handleLoginSuccess} />;
+      }
+
+      return (
+        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+          {/* Header */}
+          <header style={{
+            height: '70px',
+            borderBottom: '1px solid var(--border-color)',
+            background: 'rgba(15, 23, 42, 0.9)',
+            backdropFilter: 'blur(12px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '0 2rem',
+            position: 'sticky',
+            top: 0,
+            zIndex: 40
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div style={{
+                width: '38px',
+                height: '38px',
+                borderRadius: '10px',
+                background: 'var(--gradient-brand)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#fff',
+                fontWeight: '800',
+                fontSize: '1.2rem'
+              }}>IQ</div>
+              <div>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: '700' }}>Metro General Hospital</h2>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Healthcare & Claims Intelligence Portal</p>
+              </div>
+            </div>
+
+            {/* Profile Info Badge */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+              <div style={{
+                background: 'rgba(255,255,255,0.04)',
+                padding: '0.4rem 1rem',
+                borderRadius: 'var(--radius-full)',
+                border: '1px solid var(--border-color)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem'
+              }}>
+                <div>
+                  <span style={{ fontSize: '0.85rem', fontWeight: '700', display: 'block', lineHeight: 1.2 }}>{user.full_name}</span>
+                  <span style={{ fontSize: '0.7rem', color: 'var(--accent-cyan)', textTransform: 'uppercase', fontWeight: '700' }}>
+                    {user.role} ({user.email})
+                  </span>
+                </div>
+              </div>
+
+              <button onClick={handleLogout} className="btn btn-secondary" style={{ padding: '0.45rem 0.9rem', fontSize: '0.85rem' }}>
+                Logout
+              </button>
+            </div>
+          </header>
+
+          <div style={{ display: 'flex', flex: 1 }}>
+            {/* Sidebar Navigation */}
+            <aside style={{
+              width: '260px',
+              background: 'var(--bg-secondary)',
+              borderRight: '1px solid var(--border-color)',
+              padding: '1.5rem 1rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.5rem'
+            }}>
+              {[
+                { id: 'dashboard', label: '📊 Hospital Dashboard', roles: ['admin', 'doctor', 'claim_processor', 'patient'] },
+                { id: 'patients-dir', label: '👥 Patients Directory', roles: ['admin', 'doctor', 'claim_processor'] },
+                { id: 'doctors-dir', label: '👨‍⚕️ Doctors Directory', roles: ['admin', 'doctor', 'claim_processor'] },
+                { id: 'diseases-db', label: '🔬 Diseases & Diagnosis DB', roles: ['admin', 'doctor', 'claim_processor', 'patient'] },
+                { id: 'patient-portal', label: '👤 My Patient Portal', roles: ['patient', 'admin'] },
+                { id: 'processor-portal', label: '⚖️ Processor Adjudication', roles: ['claim_processor', 'admin'] },
+                { id: 'ocr', label: '📄 OCR Document Suite', roles: ['admin', 'doctor', 'claim_processor'] },
+                { id: 'rules', label: '⚙️ Policy Rules Builder', roles: ['admin', 'claim_processor'] },
+                { id: 'rag', label: '🤖 AI Policy Assistant', roles: ['admin', 'doctor', 'claim_processor', 'patient'] },
+              ].filter(item => item.roles.includes(user.role || 'patient')).map(item => (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    textAlign: 'left',
+                    padding: '0.75rem 1rem',
+                    borderRadius: 'var(--radius-md)',
+                    border: 'none',
+                    fontWeight: '600',
+                    fontSize: '0.9rem',
+                    cursor: 'pointer',
+                    color: activeTab === item.id ? '#ffffff' : 'var(--text-secondary)',
+                    background: activeTab === item.id ? 'var(--gradient-brand)' : 'transparent'
+                  }}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </aside>
+
+            {/* Main Content Area */}
+            <main style={{ flex: 1, padding: '2rem', maxWidth: '1400px', margin: '0 auto', width: '100%' }}>
+              {activeTab === 'dashboard' && <HospitalDashboard user={user} />}
+              {activeTab === 'patients-dir' && <PatientsDirectoryView />}
+              {activeTab === 'doctors-dir' && <DoctorsDirectoryView />}
+              {activeTab === 'diseases-db' && <DiseasesDbView />}
+              {activeTab === 'patient-portal' && <PatientPortalView user={user} />}
+              {activeTab === 'processor-portal' && <ProcessorPortalView user={user} />}
+              {activeTab === 'ocr' && <OcrView />}
+              {activeTab === 'rules' && <RulesView />}
+              {activeTab === 'rag' && <RagView />}
+            </main>
+          </div>
+        </div>
+      );
+    }
+
+    // 1. Multi-Role Login Screen
+    function LoginScreen({ onLoginSuccess }) {
+      const [email, setEmail] = useState('patient@medipolicy.iq');
+      const [password, setPassword] = useState('Patient123!');
+      const [error, setError] = useState('');
+
+      const presets = [
+        { role: 'Patient Login', email: 'patient@medipolicy.iq', pass: 'Patient123!', color: '#06b6d4', desc: 'Patient Portal & Personal Claims' },
+        { role: 'Doctor Login', email: 'doctor@medipolicy.iq', pass: 'Doctor123!', color: '#10b981', desc: 'Hospital Roster & Patient Entry' },
+        { role: 'Processor Login', email: 'processor@medipolicy.iq', pass: 'Processor123!', color: '#8b5cf6', desc: 'Approve / Reject Claims' },
+        { role: 'Admin Login', email: 'admin@medipolicy.iq', pass: 'Admin123!', color: '#3b82f6', desc: 'Full Hospital Enterprise Portal' },
+      ];
+
+      const handleLogin = async (e) => {
+        e?.preventDefault();
+        setError('');
+        try {
+          const params = new URLSearchParams();
+          params.append('username', email);
+          params.append('password', password);
+          const res = await axios.post(`${API_BASE}/auth/login`, params);
+          
+          const token = res.data.access_token;
+          const profileRes = await axios.get(`${API_BASE}/auth/me`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          
+          onLoginSuccess(token, profileRes.data);
+        } catch (err) {
+          setError(err.response?.data?.detail || 'Invalid email or password credentials');
+        }
+      };
+
+      return (
+        <div style={{
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'radial-gradient(circle at 50% 20%, #1e293b 0%, #0b0f19 100%)',
+          padding: '2rem'
+        }}>
+          <div style={{ maxWidth: '960px', width: '100%', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2.5rem', alignItems: 'center' }}>
+            <div>
+              <span style={{ color: 'var(--accent-cyan)', fontWeight: '700', fontSize: '0.85rem' }}>🏥 Metro General Hospital</span>
+              <h1 style={{ fontSize: '2.5rem', fontWeight: '800', margin: '0.5rem 0 1rem', lineHeight: 1.15 }}>
+                Hospital & Insurance Enterprise Portal
+              </h1>
+              <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
+                Complete directory for Hospital Patients, Doctors Roster, Disease & ICD-10 Diagnoses DB, Claims Adjudication, and Indian Rupee (₹) processing.
+              </p>
+            </div>
+
+            <div className="glass-card" style={{ padding: '2.5rem' }}>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '0.5rem' }}>Sign In to Portal</h2>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1.25rem' }}>Select a persona login preset below:</p>
+
+              {/* Demo Persona Selector */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '1.25rem' }}>
+                {presets.map(p => (
+                  <button
+                    key={p.role}
+                    onClick={() => { setEmail(p.email); setPassword(p.pass); }}
+                    style={{
+                      padding: '0.6rem',
+                      borderRadius: 'var(--radius-md)',
+                      border: `1px solid ${email === p.email ? p.color : 'var(--border-color)'}`,
+                      background: email === p.email ? `${p.color}20` : 'transparent',
+                      color: 'var(--text-primary)',
+                      textAlign: 'left',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <strong style={{ fontSize: '0.85rem', display: 'block', color: p.color }}>{p.role}</strong>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{p.desc}</span>
+                  </button>
+                ))}
+              </div>
+
+              {error && <div style={{ color: '#f87171', fontSize: '0.85rem', marginBottom: '1rem' }}>{error}</div>}
+
+              <form onSubmit={handleLogin}>
+                <div className="input-group">
+                  <label className="input-label">Email Address</label>
+                  <input type="email" className="input-field" value={email} onChange={e => setEmail(e.target.value)} required />
+                </div>
+                <div className="input-group" style={{ marginBottom: '1.5rem' }}>
+                  <label className="input-label">Password</label>
+                  <input type="password" className="input-field" value={password} onChange={e => setPassword(e.target.value)} required />
+                </div>
+                <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '0.8rem' }}>
+                  Sign In to Hospital Portal
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // 2. Hospital Overview Dashboard
+    function HospitalDashboard({ user }) {
+      const [data, setData] = useState(null);
+      const [patientsCount, setPatientsCount] = useState(5);
+      const [doctorsCount, setDoctorsCount] = useState(5);
+
+      useEffect(() => {
+        axios.get(`${API_BASE}/analytics/dashboard`).then(res => setData(res.data)).catch(() => {});
+        axios.get(`${API_BASE}/patients/`).then(res => setPatientsCount(res.data.length)).catch(() => {});
+        axios.get(`${API_BASE}/hospitals/doctors`).then(res => setDoctorsCount(res.data.length)).catch(() => {});
+      }, []);
+
+      return (
+        <div>
+          <div className="glass-card" style={{ padding: '2rem', marginBottom: '2rem', background: 'linear-gradient(135deg, rgba(30,58,138,0.4) 0%, rgba(17,24,39,0.8) 100%)' }}>
+            <span style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--accent-cyan)', textTransform: 'uppercase' }}>
+              Hospital Enterprise Portal | {user.role?.toUpperCase()} Persona
+            </span>
+            <h1 style={{ fontSize: '2rem', fontWeight: '800', marginTop: '0.25rem' }}>{user.full_name}</h1>
+            <p style={{ color: 'var(--text-secondary)' }}>Metro General Hospital Operations & Claims Adjudication (₹ INR).</p>
+          </div>
+
+          <div className="grid-4" style={{ marginBottom: '2rem' }}>
+            <div className="glass-card">
+              <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Total Registered Patients</span>
+              <h2 style={{ fontSize: '1.85rem', fontWeight: '700', color: 'var(--accent-cyan)' }}>{patientsCount} Patients</h2>
+            </div>
+            <div className="glass-card">
+              <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Hospital Doctors Roster</span>
+              <h2 style={{ fontSize: '1.85rem', fontWeight: '700', color: 'var(--accent-emerald)' }}>{doctorsCount} Specialists</h2>
+            </div>
+            <div className="glass-card">
+              <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Total Claims Volume</span>
+              <h2 style={{ fontSize: '1.85rem', fontWeight: '700' }}>{formatINR(data?.total_billed_amount || 1850000)}</h2>
+            </div>
+            <div className="glass-card">
+              <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Auto-Approval Rate</span>
+              <h2 style={{ fontSize: '1.85rem', fontWeight: '700', color: 'var(--accent-emerald)' }}>{data?.auto_approval_rate || 85.7}%</h2>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // 3. Hospital Patients Directory View
+    function PatientsDirectoryView() {
+      const [patients, setPatients] = useState([]);
+      const [searchTerm, setSearchTerm] = useState('');
+      const [showModal, setShowModal] = useState(false);
+
+      // Form State
+      const [patCode, setPatCode] = useState(`PAT-${Math.floor(1000 + Math.random() * 9000)}`);
+      const [patName, setPatName] = useState('');
+      const [patPhone, setPatPhone] = useState('+91-9876543210');
+      const [patDiag, setPatDiag] = useState('ICD10-J18.9 (Pneumonia)');
+      const [patDoc, setPatDoc] = useState('Dr. Ananya Sharma');
+
+      const loadPatients = () => {
+        axios.get(`${API_BASE}/patients/`).then(res => setPatients(res.data)).catch(() => {});
+      };
+
+      useEffect(() => { loadPatients(); }, []);
+
+      const handleAddPatient = async (e) => {
+        e.preventDefault();
+        try {
+          await axios.post(`${API_BASE}/patients/`, {
+            patient_code: patCode,
+            full_name: patName,
+            dob: "1990-05-15",
+            gender: "Male",
+            blood_group: "B+",
+            phone: patPhone,
+            primary_diagnosis: patDiag,
+            assigned_doctor: patDoc,
+            admission_status: "INPATIENT"
+          });
+          alert("New Hospital Patient registered successfully!");
+          setShowModal(false);
+          loadPatients();
+        } catch (err) { alert("Error adding patient: " + err.message); }
+      };
+
+      const filtered = patients.filter(p => p.full_name.toLowerCase().includes(searchTerm.toLowerCase()) || p.patient_code.toLowerCase().includes(searchTerm.toLowerCase()));
+
+      return (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <div>
+              <h1 style={{ fontSize: '2rem', fontWeight: '800' }}>Hospital Patients Directory</h1>
+              <p style={{ color: 'var(--text-secondary)' }}>All registered hospital patients, diagnosis codes, assigned doctors, and admission status</p>
+            </div>
+            <button onClick={() => setShowModal(true)} className="btn btn-primary">➕ Register New Patient</button>
+          </div>
+
+          <div className="input-group" style={{ marginBottom: '1.5rem' }}>
+            <input type="text" className="input-field" placeholder="Search patients by name or code..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+          </div>
+
+          <div className="glass-card">
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase' }}>
+                  <th style={{ padding: '0.85rem' }}>Patient Code</th>
+                  <th style={{ padding: '0.85rem' }}>Patient Name</th>
+                  <th style={{ padding: '0.85rem' }}>Gender / Blood Group</th>
+                  <th style={{ padding: '0.85rem' }}>Primary Diagnosis</th>
+                  <th style={{ padding: '0.85rem' }}>Assigned Doctor</th>
+                  <th style={{ padding: '0.85rem' }}>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(p => (
+                  <tr key={p.id} style={{ borderBottom: '1px solid var(--border-color)', fontSize: '0.9rem' }}>
+                    <td style={{ padding: '1rem', fontWeight: '700', color: 'var(--accent-cyan)' }}>{p.patient_code}</td>
+                    <td style={{ padding: '1rem', fontWeight: '600' }}>{p.full_name}</td>
+                    <td style={{ padding: '1rem' }}>{p.gender} | <strong style={{ color: 'var(--accent-rose)' }}>{p.blood_group || 'O+'}</strong></td>
+                    <td style={{ padding: '1rem', color: '#a5b4fc' }}>{p.primary_diagnosis || 'ICD10-J18.9 (Pneumonia)'}</td>
+                    <td style={{ padding: '1rem', color: 'var(--accent-emerald)' }}>{p.assigned_doctor || 'Dr. Ananya Sharma'}</td>
+                    <td style={{ padding: '1rem' }}><span className="badge badge-approved">{p.admission_status || 'INPATIENT'}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Add Patient Modal */}
+          {showModal && (
+            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+              <div className="glass-card" style={{ maxWidth: '550px', width: '100%', padding: '2rem' }}>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '1.5rem' }}>Register New Hospital Patient</h2>
+                <form onSubmit={handleAddPatient}>
+                  <div className="input-group">
+                    <label className="input-label">Patient Full Name</label>
+                    <input type="text" className="input-field" value={patName} onChange={e => setPatName(e.target.value)} required />
+                  </div>
+                  <div className="input-group">
+                    <label className="input-label">Contact Phone</label>
+                    <input type="text" className="input-field" value={patPhone} onChange={e => setPatPhone(e.target.value)} required />
+                  </div>
+                  <div className="input-group">
+                    <label className="input-label">Primary Diagnosis</label>
+                    <input type="text" className="input-field" value={patDiag} onChange={e => setPatDiag(e.target.value)} required />
+                  </div>
+                  <div className="input-group" style={{ marginBottom: '1.5rem' }}>
+                    <label className="input-label">Assigned Doctor</label>
+                    <input type="text" className="input-field" value={patDoc} onChange={e => setPatDoc(e.target.value)} required />
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                    <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
+                    <button type="submit" className="btn btn-primary">Save Patient Profile</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // 4. Hospital Doctors Directory View
+    function DoctorsDirectoryView() {
+      const [doctors, setDoctors] = useState([]);
+      const [showModal, setShowModal] = useState(false);
+
+      // Form State
+      const [docCode, setDocCode] = useState(`DOC-${Math.floor(100 + Math.random() * 900)}`);
+      const [docName, setDocName] = useState('');
+      const [docSpec, setDocSpec] = useState('Cardiology');
+      const [docDept, setDocDept] = useState('Cardiovascular Department');
+      const [docPhone, setDocPhone] = useState('+91-9811002233');
+
+      const loadDoctors = () => {
+        axios.get(`${API_BASE}/hospitals/doctors`).then(res => setDoctors(res.data)).catch(() => {});
+      };
+
+      useEffect(() => { loadDoctors(); }, []);
+
+      const handleAddDoctor = async (e) => {
+        e.preventDefault();
+        try {
+          await axios.post(`${API_BASE}/hospitals/doctors`, {
+            doctor_code: docCode,
+            full_name: docName,
+            specialization: docSpec,
+            qualification: "MD / MS Specialist",
+            department: docDept,
+            hospital_name: "Metro General Hospital",
+            phone: docPhone
+          });
+          alert("New Doctor Specialist onboarded successfully!");
+          setShowModal(false);
+          loadDoctors();
+        } catch (err) { alert("Error adding doctor: " + err.message); }
+      };
+
+      return (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <div>
+              <h1 style={{ fontSize: '2rem', fontWeight: '800' }}>Hospital Doctors & Specialists Roster</h1>
+              <p style={{ color: 'var(--text-secondary)' }}>All registered hospital doctors, specializations, qualifications, and department contacts</p>
+            </div>
+            <button onClick={() => setShowModal(true)} className="btn btn-primary">👨‍⚕️ Onboard New Doctor</button>
+          </div>
+
+          <div className="grid-3">
+            {doctors.map(d => (
+              <div key={d.id} className="glass-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                  <span className="badge badge-approved">On Duty</span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--accent-cyan)', fontWeight: '700' }}>{d.doctor_code}</span>
+                </div>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: '700' }}>{d.full_name}</h3>
+                <p style={{ color: 'var(--accent-teal)', fontSize: '0.9rem', fontWeight: '600', marginBottom: '0.5rem' }}>
+                  {d.specialization} Specialist
+                </p>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Qual: {d.qualification}</p>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Dept: {d.department}</p>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.35rem' }}>Contact: {d.phone}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Add Doctor Modal */}
+          {showModal && (
+            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+              <div className="glass-card" style={{ maxWidth: '550px', width: '100%', padding: '2rem' }}>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '1.5rem' }}>Onboard New Doctor Specialist</h2>
+                <form onSubmit={handleAddDoctor}>
+                  <div className="input-group">
+                    <label className="input-label">Doctor Full Name</label>
+                    <input type="text" className="input-field" placeholder="Dr. First Last, MD" value={docName} onChange={e => setDocName(e.target.value)} required />
+                  </div>
+                  <div className="input-group">
+                    <label className="input-label">Specialization</label>
+                    <select className="input-field" value={docSpec} onChange={e => setDocSpec(e.target.value)}>
+                      <option value="Cardiology">Cardiology</option>
+                      <option value="Orthopedics">Orthopedics</option>
+                      <option value="Pulmonology">Pulmonology</option>
+                      <option value="General Surgery">General Surgery</option>
+                      <option value="Neurology">Neurology</option>
+                    </select>
+                  </div>
+                  <div className="input-group">
+                    <label className="input-label">Department</label>
+                    <input type="text" className="input-field" value={docDept} onChange={e => setDocDept(e.target.value)} required />
+                  </div>
+                  <div className="input-group" style={{ marginBottom: '1.5rem' }}>
+                    <label className="input-label">Contact Phone</label>
+                    <input type="text" className="input-field" value={docPhone} onChange={e => setDocPhone(e.target.value)} required />
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                    <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
+                    <button type="submit" className="btn btn-primary">Save Doctor Profile</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // 5. Diseases & Diagnosis DB View
+    function DiseasesDbView() {
+      const [diseases, setDiseases] = useState([]);
+      const [query, setQuery] = useState('');
+
+      useEffect(() => {
+        axios.get(`${API_BASE}/hospitals/diseases?query=${query}`).then(res => setDiseases(res.data)).catch(() => {});
+      }, [query]);
+
+      return (
+        <div>
+          <div style={{ marginBottom: '1.5rem' }}>
+            <h1 style={{ fontSize: '2rem', fontWeight: '800' }}>Hospital Diseases & Diagnosis Database</h1>
+            <p style={{ color: 'var(--text-secondary)' }}>Search ICD-10 diagnosis codes, procedure categories, standard length of stay, and estimated treatment costs in ₹ INR</p>
+          </div>
+
+          <div className="input-group" style={{ marginBottom: '1.5rem' }}>
+            <input type="text" className="input-field" placeholder="Search disease by name, code (e.g. J18.9), or department..." value={query} onChange={e => setQuery(e.target.value)} />
+          </div>
+
+          <div className="grid-2">
+            {diseases.map((d, idx) => (
+              <div key={idx} className="glass-card">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                  <span className="badge badge-approved">{d.category}</span>
+                  <strong style={{ color: 'var(--accent-cyan)' }}>{d.icd_code}</strong>
+                </div>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: '700', margin: '0.35rem 0' }}>{d.disease_name}</h3>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Standard Length of Stay: <strong>{d.standard_length_of_stay}</strong></p>
+                <p style={{ fontSize: '0.85rem', color: 'var(--accent-emerald)', marginTop: '0.25rem' }}>Estimated Inpatient Treatment Fee: <strong>{d.estimated_cost_inr}</strong></p>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // 6. Patient Portal View (Dedicated Patient Dashboard & Claim Upload)
+    function PatientPortalView({ user }) {
+      const [myClaims, setMyClaims] = useState([]);
+      const [showModal, setShowModal] = useState(false);
+      const [expandedClaim, setExpandedClaim] = useState(null);
+
+      const [roomCost, setRoomCost] = useState(35000);
+      const [medicineCost, setMedicineCost] = useState(25000);
+      const [treatmentCost, setTreatmentCost] = useState(80000);
+      const [scanCost, setScanCost] = useState(10000);
+      const [diagnosis, setDiagnosis] = useState('ICD10-J18.9 (Pneumonia)');
+
+      const fetchPatientClaims = () => {
+        axios.get(`${API_BASE}/claims/patient/1`).then(res => setMyClaims(res.data)).catch(() => {});
+      };
+
+      useEffect(() => { fetchPatientClaims(); }, []);
+
+      const handlePatientClaimSubmit = async (e) => {
+        e.preventDefault();
+        const total = Number(roomCost) + Number(medicineCost) + Number(treatmentCost) + Number(scanCost);
+        try {
+          const payload = {
+            patient_id: 1,
+            hospital_id: 1,
+            primary_policy_id: 1,
+            claim_type: "INPATIENT",
+            diagnosis_code: diagnosis.split(' ')[0],
+            total_billed_amount: total,
+            items: [
+              { item_description: "Hospital Ward Stay / Room Rent charges", category: "ROOM", cpt_code: "99291", billed_amount: Number(roomCost) },
+              { item_description: "Inpatient Pharmacy & Consumables (Medicines)", category: "PHARMACY", cpt_code: "99070", billed_amount: Number(medicineCost) },
+              { item_description: "Laparoscopic Treatment & Medical Surgery Charges", category: "SURGERY", cpt_code: "47562", billed_amount: Number(treatmentCost) },
+              { item_description: "Chest CT Scan, Diagnostics & Blood Lab Panel", category: "LABORATORY", cpt_code: "70450", billed_amount: Number(scanCost) }
+            ]
+          };
+          await axios.post(`${API_BASE}/claims/`, payload);
+          alert("Insurance claim submitted successfully with itemized procedures!");
+          setShowModal(false);
+          fetchPatientClaims();
+        } catch (err) { alert("Error submitting claim: " + err.message); }
+      };
+
+
+      return (
+        <div>
+          <div className="glass-card" style={{ padding: '2rem', marginBottom: '2rem', background: 'linear-gradient(135deg, rgba(6,182,212,0.15) 0%, rgba(17,24,39,0.85) 100%)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <span className="badge badge-approved" style={{ marginBottom: '0.5rem' }}>Active Insured Patient</span>
+                <h1 style={{ fontSize: '2.25rem', fontWeight: '800' }}>Eleanor Vance</h1>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
+                  Patient Code: <strong style={{ color: 'var(--accent-cyan)' }}>PAT-9082</strong> | Blood Group: <strong>O+</strong> | Assigned Doctor: <strong style={{ color: 'var(--accent-emerald)' }}>Dr. Ananya Sharma</strong>
+                </p>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.25rem' }}>
+                  Primary Policy: <strong style={{ color: '#fff' }}>POL-1001-INDIVIDUAL</strong> (Aegis Mutual) | Coverage Sum: <strong style={{ color: 'var(--accent-emerald)' }}>{formatINR(500000)}</strong>
+                </p>
+              </div>
+
+              <button onClick={() => setShowModal(true)} className="btn btn-primary">
+                ➕ Upload & Submit New Claim
+              </button>
+            </div>
+          </div>
+
+          <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '1rem' }}>My Insurance Claims</h2>
+          <div className="glass-card">
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase' }}>
+                  <th style={{ padding: '0.85rem' }}>Claim #</th>
+                  <th style={{ padding: '0.85rem' }}>Diagnosis</th>
+                  <th style={{ padding: '0.85rem' }}>Total Billed</th>
+                  <th style={{ padding: '0.85rem' }}>Insurance Paid</th>
+                  <th style={{ padding: '0.85rem' }}>My Payable Amount</th>
+                  <th style={{ padding: '0.85rem' }}>Status</th>
+                  <th style={{ padding: '0.85rem' }}>Procedures Detail</th>
+                </tr>
+              </thead>
+              <tbody>
+                {myClaims.map(c => (
+                  <React.Fragment key={c.id}>
+                    <tr style={{ borderBottom: '1px solid var(--border-color)', fontSize: '0.9rem' }}>
+                      <td style={{ padding: '1rem', fontWeight: '700', color: 'var(--accent-cyan)' }}>{c.claim_number}</td>
+                      <td style={{ padding: '1rem' }}>{c.diagnosis_code}</td>
+                      <td style={{ padding: '1rem' }}>{formatINR(c.total_billed_amount)}</td>
+                      <td style={{ padding: '1rem', fontWeight: '700', color: 'var(--accent-emerald)' }}>{formatINR(c.approved_amount)}</td>
+                      <td style={{ padding: '1rem', color: 'var(--accent-amber)', fontWeight: '700' }}>{formatINR(c.patient_payable)}</td>
+                      <td style={{ padding: '1rem' }}>
+                        <span className={`badge ${c.status === 'APPROVED' ? 'badge-approved' : (c.status === 'REJECTED' ? 'badge-fraud' : 'badge-partially')}`}>
+                          {c.status}
+                        </span>
+                      </td>
+                      <td style={{ padding: '1rem' }}>
+                        <button
+                          className="btn btn-secondary"
+                          style={{ padding: '0.35rem 0.65rem', fontSize: '0.8rem' }}
+                          onClick={() => setExpandedClaim(expandedClaim === c.id ? null : c.id)}
+                        >
+                          {expandedClaim === c.id ? 'Hide' : 'Show'} Procedures
+                        </button>
+                      </td>
+                    </tr>
+
+                    {expandedClaim === c.id && (
+                      <tr>
+                        <td colSpan="7" style={{ padding: '1rem', background: 'rgba(0,0,0,0.15)' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1.5rem' }}>
+                            <div className="glass-card" style={{ padding: '1.25rem', background: 'rgba(0,0,0,0.3)' }}>
+                              <h4 style={{ fontSize: '0.9rem', fontWeight: '700', marginBottom: '0.75rem', color: 'var(--accent-cyan)' }}>
+                                Claim Payment Summary (INR)
+                              </h4>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
+                                  <span>Total Hospital Bill:</span>
+                                  <strong>{formatINR(c.total_billed_amount)}</strong>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--accent-emerald)' }}>
+                                  <span>Insurance Approved Coverage:</span>
+                                  <strong>{formatINR(c.approved_amount)}</strong>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--accent-amber)' }}>
+                                  <span>Patient Out-of-Pocket:</span>
+                                  <strong>{formatINR(c.patient_payable)}</strong>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="glass-card" style={{ padding: '1.25rem', background: 'rgba(0,0,0,0.3)' }}>
+                              <h4 style={{ fontSize: '0.9rem', fontWeight: '700', marginBottom: '0.75rem', color: 'var(--accent-cyan)' }}>
+                                Itemized Procedures & Treatment Lines
+                              </h4>
+                              <table style={{ width: '100%', fontSize: '0.85rem', borderCollapse: 'collapse' }}>
+                                <thead>
+                                  <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)' }}>
+                                    <th style={{ padding: '0.45rem' }}>Procedure / Item</th>
+                                    <th style={{ padding: '0.45rem' }}>CPT Code</th>
+                                    <th style={{ padding: '0.45rem' }}>Billed Amount</th>
+                                    <th style={{ padding: '0.45rem' }}>Insurance Approved</th>
+                                    <th style={{ padding: '0.45rem' }}>Rejection Details / Caps</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {(c.items || [
+                                    { item_description: 'Inpatient Room Charges', cpt_code: '99291', billed_amount: c.total_billed_amount, approved_amount: c.approved_amount, rejection_reason: 'Deductible/copay applied' }
+                                  ]).map((item, idx) => (
+                                    <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                                      <td style={{ padding: '0.5rem' }}>{item.item_description}</td>
+                                      <td style={{ padding: '0.5rem' }}>{item.cpt_code || 'N/A'}</td>
+                                      <td style={{ padding: '0.5rem' }}>{formatINR(item.billed_amount)}</td>
+                                      <td style={{ padding: '0.5rem', color: 'var(--accent-emerald)' }}>{formatINR(item.approved_amount)}</td>
+                                      <td style={{ padding: '0.5rem', color: 'var(--text-muted)', fontSize: '0.75rem' }}>{item.rejection_reason || 'Covered under basic plan'}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {showModal && (
+            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
+              <div className="glass-card" style={{ maxWidth: '550px', width: '100%', padding: '2rem', maxHeight: '90vh', overflowY: 'auto' }}>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: '700', marginBottom: '1.5rem' }}>Upload Insurance Claim Request</h2>
+                <form onSubmit={handlePatientClaimSubmit}>
+                  <div className="input-group">
+                    <label className="input-label">Diagnosis / Illness</label>
+                    <input type="text" className="input-field" value={diagnosis} onChange={e => setDiagnosis(e.target.value)} required />
+                  </div>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                    <div className="input-group">
+                      <label className="input-label">Room Stay Charges (₹)</label>
+                      <input type="number" className="input-field" value={roomCost} onChange={e => setRoomCost(e.target.value)} required />
+                    </div>
+                    <div className="input-group">
+                      <label className="input-label">Medicines / Pharmacy (₹)</label>
+                      <input type="number" className="input-field" value={medicineCost} onChange={e => setMedicineCost(e.target.value)} required />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                    <div className="input-group">
+                      <label className="input-label">Surgery / Treatment (₹)</label>
+                      <input type="number" className="input-field" value={treatmentCost} onChange={e => setTreatmentCost(e.target.value)} required />
+                    </div>
+                    <div className="input-group">
+                      <label className="input-label">Diagnostic Scans (CT/MRI) (₹)</label>
+                      <input type="number" className="input-field" value={scanCost} onChange={e => setScanCost(e.target.value)} required />
+                    </div>
+                  </div>
+
+                  <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-md)', border: '1px dashed var(--border-color)', marginBottom: '1.5rem', textAlign: 'center' }}>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Computed Total Bill: </span>
+                    <strong style={{ fontSize: '1.1rem', color: 'var(--accent-cyan)' }}>
+                      {formatINR(Number(roomCost) + Number(medicineCost) + Number(treatmentCost) + Number(scanCost))}
+                    </strong>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                    <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
+                    <button type="submit" className="btn btn-primary">Submit Claim</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // 7. Processor Portal View (Approve or Reject Claims)
+    function ProcessorPortalView({ user }) {
+      const [claims, setClaims] = useState([]);
+      const [expandedClaim, setExpandedClaim] = useState(null);
+
+      const fetchAllClaims = () => {
+        axios.get(`${API_BASE}/claims/`).then(res => setClaims(res.data)).catch(() => {});
+      };
+
+      useEffect(() => { fetchAllClaims(); }, []);
+
+      const handleAdjudicate = async (claimId, newStatus) => {
+        try {
+          await axios.put(`${API_BASE}/claims/${claimId}/status`, {
+            status: newStatus,
+            decision_notes: `Manually ${newStatus.toLowerCase()} by Claim Processor (${user.full_name})`
+          });
+          alert(`Claim status updated to ${newStatus}!`);
+          fetchAllClaims();
+        } catch (err) { alert("Error updating claim status: " + err.message); }
+      };
+
+      return (
+        <div>
+          <div style={{ marginBottom: '2rem' }}>
+            <h1 style={{ fontSize: '2rem', fontWeight: '800' }}>Claim Processor Adjudication Portal</h1>
+            <p style={{ color: 'var(--text-secondary)' }}>Review pending hospital claims, inspect fraud scores, and execute Approval or Disapproval actions</p>
+          </div>
+
+          <div className="glass-card">
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase' }}>
+                  <th style={{ padding: '0.85rem' }}>Claim #</th>
+                  <th style={{ padding: '0.85rem' }}>Type & Code</th>
+                  <th style={{ padding: '0.85rem' }}>Billed Amount</th>
+                  <th style={{ padding: '0.85rem' }}>Calculated Approved</th>
+                  <th style={{ padding: '0.85rem' }}>Fraud Score</th>
+                  <th style={{ padding: '0.85rem' }}>Current Status</th>
+                  <th style={{ padding: '0.85rem' }}>Details & Decision</th>
+                </tr>
+              </thead>
+              <tbody>
+                {claims.map(c => (
+                  <React.Fragment key={c.id}>
+                    <tr style={{ borderBottom: '1px solid var(--border-color)', fontSize: '0.9rem' }}>
+                      <td style={{ padding: '1rem', fontWeight: '700', color: 'var(--accent-cyan)' }}>{c.claim_number}</td>
+                      <td style={{ padding: '1rem' }}>{c.claim_type} ({c.diagnosis_code})</td>
+                      <td style={{ padding: '1rem' }}>{formatINR(c.total_billed_amount)}</td>
+                      <td style={{ padding: '1rem', fontWeight: '700', color: 'var(--accent-emerald)' }}>{formatINR(c.approved_amount)}</td>
+                      <td style={{ padding: '1rem', color: c.fraud_risk_score >= 60 ? 'var(--accent-rose)' : 'var(--accent-emerald)', fontWeight: '700' }}>
+                        {c.fraud_risk_score}/100
+                      </td>
+                      <td style={{ padding: '1rem' }}>
+                        <span className={`badge ${c.status === 'APPROVED' ? 'badge-approved' : (c.status === 'REJECTED' ? 'badge-fraud' : 'badge-partially')}`}>
+                          {c.status}
+                        </span>
+                      </td>
+                      <td style={{ padding: '1rem' }}>
+                        <button
+                          className="btn btn-secondary"
+                          style={{ padding: '0.35rem 0.65rem', fontSize: '0.8rem' }}
+                          onClick={() => setExpandedClaim(expandedClaim === c.id ? null : c.id)}
+                        >
+                          {expandedClaim === c.id ? 'Hide' : 'Review'} Details
+                        </button>
+                      </td>
+                    </tr>
+
+                    {expandedClaim === c.id && (
+                      <tr>
+                        <td colSpan="7" style={{ padding: '1rem', background: 'rgba(0,0,0,0.15)' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1.5rem', marginBottom: '1rem' }}>
+                            {/* Summary Card */}
+                            <div className="glass-card" style={{ padding: '1.25rem', background: 'rgba(0,0,0,0.3)' }}>
+                              <h4 style={{ fontSize: '0.9rem', fontWeight: '700', marginBottom: '0.75rem', color: 'var(--accent-cyan)' }}>
+                                Claim Financial Summary (INR)
+                              </h4>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1rem' }}>
+                                <div style={{ display: 'flex', justify: 'space-between', fontSize: '0.85rem' }}>
+                                  <span>Total Billed Bill:</span>
+                                  <strong>{formatINR(c.total_billed_amount)}</strong>
+                                </div>
+                                <div style={{ display: 'flex', justify: 'space-between', fontSize: '0.85rem', color: 'var(--accent-emerald)' }}>
+                                  <span>Insurance Coverage Amount:</span>
+                                  <strong>{formatINR(c.approved_amount)}</strong>
+                                </div>
+                                <div style={{ display: 'flex', justify: 'space-between', fontSize: '0.85rem', color: 'var(--accent-amber)' }}>
+                                  <span>Patient Out-of-Pocket:</span>
+                                  <strong>{formatINR(c.patient_payable)}</strong>
+                                </div>
+                              </div>
+
+                              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <button onClick={() => handleAdjudicate(c.id, 'APPROVED')} className="btn btn-success" style={{ width: '50%', padding: '0.5rem', fontSize: '0.8rem' }}>
+                                  ✓ Approve
+                                </button>
+                                <button onClick={() => handleAdjudicate(c.id, 'REJECTED')} className="btn btn-danger" style={{ width: '50%', padding: '0.5rem', fontSize: '0.8rem' }}>
+                                  ✕ Reject
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Itemized Procedures Card */}
+                            <div className="glass-card" style={{ padding: '1.25rem', background: 'rgba(0,0,0,0.3)' }}>
+                              <h4 style={{ fontSize: '0.9rem', fontWeight: '700', marginBottom: '0.75rem', color: 'var(--accent-cyan)' }}>
+                                Extracted Medical Procedures Details
+                              </h4>
+                              <table style={{ width: '100%', fontSize: '0.85rem', borderCollapse: 'collapse' }}>
+                                <thead>
+                                  <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-muted)' }}>
+                                    <th style={{ padding: '0.45rem' }}>Procedure / Treatment</th>
+                                    <th style={{ padding: '0.45rem' }}>CPT Code</th>
+                                    <th style={{ padding: '0.45rem' }}>Billed Amount</th>
+                                    <th style={{ padding: '0.45rem' }}>Approved Amount</th>
+                                    <th style={{ padding: '0.45rem' }}>Cap Penalty / Policy Cap details</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {(c.items || [
+                                    { item_description: 'Standard Ward Stay charges', cpt_code: '99291', billed_amount: c.total_billed_amount, approved_amount: c.approved_amount, rejection_reason: 'Calculated using base sum' }
+                                  ]).map((item, idx) => (
+                                    <tr key={idx} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                                      <td style={{ padding: '0.5rem' }}>{item.item_description}</td>
+                                      <td style={{ padding: '0.5rem' }}>{item.cpt_code || 'N/A'}</td>
+                                      <td style={{ padding: '0.5rem' }}>{formatINR(item.billed_amount)}</td>
+                                      <td style={{ padding: '0.5rem', color: 'var(--accent-emerald)' }}>{formatINR(item.approved_amount)}</td>
+                                      <td style={{ padding: '0.5rem', color: 'var(--text-muted)', fontSize: '0.75rem' }}>{item.rejection_reason || 'Within standard limits'}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    }
+
+    // 8. OCR Document Workspace View
+    function OcrView() {
+      const [docType, setDocType] = useState('INVOICE');
+      const [sampleType, setSampleType] = useState('inpatient_bill');
+      const [result, setResult] = useState(null);
+      const [loading, setLoading] = useState(false);
+
+      const handleRun = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+          const fd = new FormData();
+          fd.append('doc_type', docType);
+          fd.append('sample_type', sampleType);
+          const res = await axios.post(`${API_BASE}/ocr/process`, fd);
+          setResult(res.data);
+        } catch (err) {
+          alert("OCR extraction failed");
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      return (
+        <div className="grid-2">
+          <div className="glass-card">
+            <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '1rem' }}>OCR Document Processing</h2>
+            <form onSubmit={handleRun}>
+              <div className="input-group">
+                <label className="input-label">Document Category</label>
+                <select className="input-field" value={docType} onChange={e => setDocType(e.target.value)}>
+                  <option value="INVOICE">INVOICE / BILL</option>
+                  <option value="PRESCRIPTION">PRESCRIPTION</option>
+                  <option value="INSURANCE_CARD">INSURANCE CARD</option>
+                </select>
+              </div>
+              <div className="input-group" style={{ marginBottom: '1.5rem' }}>
+                <label className="input-label">Sample Preset</label>
+                <select className="input-field" value={sampleType} onChange={e => setSampleType(e.target.value)}>
+                  <option value="inpatient_bill">Inpatient Bill (₹1,50,000)</option>
+                  <option value="prescription">Doctor Prescription (₹2,300)</option>
+                </select>
+              </div>
+              <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
+                {loading ? 'Processing OCR...' : 'Run OCR & Extract Data'}
+              </button>
+            </form>
+          </div>
+
+          <div className="glass-card">
+            <h2 style={{ fontSize: '1.3rem', fontWeight: '700', marginBottom: '1rem' }}>Extracted OCR Summary Card</h2>
+            {result ? (
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', padding: '0.75rem', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)' }}>
+                  <div>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Hospital Facility</span>
+                    <strong style={{ display: 'block', color: 'var(--accent-cyan)' }}>{result.parsed_json.hospital_name || 'Metro General Hospital'}</strong>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Confidence</span>
+                    <strong style={{ display: 'block', color: 'var(--accent-emerald)' }}>{(result.ocr_confidence * 100).toFixed(0)}%</strong>
+                  </div>
+                </div>
+
+                <div style={{ marginBottom: '1rem' }}>
+                  <p style={{ fontSize: '0.85rem' }}>Patient Name: <strong>{result.parsed_json.patient_name || 'Eleanor Vance'}</strong></p>
+                  <p style={{ fontSize: '0.85rem' }}>Bill Reference ID: <strong>{result.parsed_json.bill_number || 'INV-2026-8891'}</strong></p>
+                  <p style={{ fontSize: '0.85rem' }}>Estimated Billed: <strong>{formatINR(result.parsed_json.total_billed || 150000)}</strong></p>
+                </div>
+
+                <h4 style={{ fontSize: '0.85rem', fontWeight: '700', marginBottom: '0.5rem', color: 'var(--text-secondary)' }}>Itemized extracted procedures:</h4>
+                <div style={{ maxHeight: '200px', overflowY: 'auto', background: 'rgba(0,0,0,0.2)', padding: '0.5rem', borderRadius: 'var(--radius-sm)', marginBottom: '1rem' }}>
+                  {(result.parsed_json.line_items || result.parsed_json.medications || []).map((item, index) => (
+                    <div key={index} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', padding: '0.35rem 0', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+                      <span>{item.description || item.name}</span>
+                      <strong>{formatINR(item.billed_amount || item.cost)}</strong>
+                    </div>
+                  ))}
+                </div>
+
+                <button onClick={() => alert("Claim submitted successfully from OCR summary!")} className="btn btn-success" style={{ width: '100%' }}>
+                  🚀 Submit Extracted Invoices for Insurance Claim
+                </button>
+              </div>
+            ) : <p style={{ color: 'var(--text-muted)' }}>Run OCR to inspect extracted entities in simple-to-understand format.</p>}
+          </div>
+        </div>
+      );
+    }
+
+
+    // 9. Policy Rules View
+    function RulesView() {
+      const [policies, setPolicies] = useState([]);
+      useEffect(() => { axios.get(`${API_BASE}/policies/`).then(res => setPolicies(res.data)).catch(() => {}); }, []);
+
+      return (
+        <div>
+          <h1 style={{ fontSize: '2rem', fontWeight: '800', marginBottom: '1.5rem' }}>Dynamic Policy Rules Configurator</h1>
+          <div className="grid-2">
+            {policies.map(p => (
+              <div key={p.id} className="glass-card">
+                <span className="badge badge-approved">{p.policy_type}</span>
+                <h3 style={{ fontSize: '1.3rem', fontWeight: '700', margin: '0.5rem 0' }}>{p.policy_number}</h3>
+                <p>Sum Insured: <strong>{formatINR(p.sum_insured)}</strong> | Deductible: <strong>{formatINR(p.deductible)}</strong></p>
+                <p>Room Rent Cap: <strong style={{ color: 'var(--accent-cyan)' }}>{formatINR(p.room_rent_cap_per_day)}/day</strong></p>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    // 10. RAG Assistant View (Original Chatbot with Hospital Details and Appointment Booking)
+    function RagView() {
+      const [query, setQuery] = useState('');
+      const [chat, setChat] = useState([
+        { role: 'assistant', text: '👋 Hello! I am the Metro General Hospital AI Assistant. Ask me anything about doctors, specialties, OPD timings, policy rules, or type "book an appointment with [Doctor Name]" to schedule a visit.' }
+      ]);
+      const [appointments, setAppointments] = useState([]);
+
+      const loadAppointments = () => {
+        axios.get(`${API_BASE}/appointments/`).then(res => setAppointments(res.data)).catch(() => {});
+      };
+
+      useEffect(() => {
+        loadAppointments();
+      }, []);
+
+      const handleSendQuery = async (qText) => {
+        if (!qText) return;
+        setChat(prev => [...prev, { role: 'user', text: qText }]);
+        try {
+          const res = await axios.post(`${API_BASE}/rag/query`, { query: qText });
+          setChat(prev => [...prev, { role: 'assistant', text: res.data.answer }]);
+          // If successful booking, refresh appointments list
+          if (qText.toLowerCase().includes('book') || qText.toLowerCase().includes('appointment') || qText.toLowerCase().includes('schedule')) {
+            loadAppointments();
+          }
+        } catch (err) {
+          setChat(prev => [...prev, { role: 'assistant', text: 'Sorry, I encountered an error processing your query.' }]);
+        }
+      };
+
+      const handleFormSubmit = (e) => {
+        e.preventDefault();
+        if (!query.trim()) return;
+        handleSendQuery(query);
+        setQuery('');
+      };
+
+      const suggestions = [
+        { label: '📅 Book Dr. Jenkins', q: 'Book an appointment with Dr. Sarah Jenkins for tomorrow morning' },
+        { label: '📅 Book Dr. Reddy', q: 'Book an appointment with Dr. Meera Reddy for tomorrow afternoon' },
+        { label: '🏢 Timings & Info', q: 'What are the hospital OPD timings and location address?' },
+        { label: '🛡️ Policy Rent Cap', q: 'What is the room rent and ICU limit in INR ₹ for policy POL-1001?' }
+      ];
+
+      return (
+        <div style={{ maxWidth: '900px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+          <div>
+            <h1 style={{ fontSize: '2.25rem', fontWeight: '800', textAlign: 'center', marginBottom: '0.25rem' }}>AI Hospital & Policy Assistant</h1>
+            <p style={{ color: 'var(--text-secondary)', textAlign: 'center', fontSize: '0.95rem' }}>Book appointments, look up doctor rosters, and verify policy guidelines interactively</p>
+          </div>
+
+          <div className="grid-3" style={{ gridTemplateColumns: '2fr 1.2fr', gap: '1.5rem', alignItems: 'start' }}>
+            {/* Chat Area */}
+            <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', height: '520px', padding: '1.25rem' }}>
+              <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem', paddingBottom: '1rem' }}>
+                {chat.map((m, i) => (
+                  <div key={i} style={{
+                    alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',
+                    background: m.role === 'user' ? 'var(--gradient-brand)' : 'rgba(255, 255, 255, 0.04)',
+                    border: m.role === 'user' ? 'none' : '1px solid var(--border-color)',
+                    padding: '0.75rem 1rem',
+                    borderRadius: 'var(--radius-md)',
+                    maxWidth: '85%',
+                    whiteSpace: 'pre-line',
+                    fontSize: '0.925rem'
+                  }}>
+                    {m.text}
+                  </div>
+                ))}
+              </div>
+
+              {/* Suggestions row */}
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+                {suggestions.map((s, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleSendQuery(s.q)}
+                    style={{
+                      background: 'rgba(255,255,255,0.03)',
+                      border: '1px solid var(--border-color)',
+                      color: 'var(--accent-cyan)',
+                      fontSize: '0.75rem',
+                      padding: '0.35rem 0.7rem',
+                      borderRadius: 'var(--radius-full)',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseOver={e => e.target.style.background = 'rgba(255,255,255,0.08)'}
+                    onMouseOut={e => e.target.style.background = 'rgba(255,255,255,0.03)'}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+
+              <form onSubmit={handleFormSubmit} style={{ display: 'flex', gap: '0.5rem' }}>
+                <input
+                  type="text"
+                  className="input-field"
+                  placeholder="Ask hospital timing, room caps, or ask to book an appointment..."
+                  value={query}
+                  onChange={e => setQuery(e.target.value)}
+                />
+                <button type="submit" className="btn btn-primary" style={{ padding: '0.7rem 1.5rem' }}>Send</button>
+              </form>
+            </div>
+
+            {/* Scheduled Appointments Panel */}
+            <div className="glass-card" style={{ height: '520px', display: 'flex', flexDirection: 'column', padding: '1.25rem' }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '0.75rem', color: 'var(--accent-cyan)' }}>
+                📅 Scheduled Appointments
+              </h3>
+              <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {appointments.length === 0 ? (
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>No active hospital appointments booked yet. Book via chat on the left!</p>
+                ) : (
+                  appointments.map(apt => (
+                    <div key={apt.id} style={{ padding: '0.75rem', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
+                        <strong style={{ fontSize: '0.85rem', color: '#fff' }}>{apt.doctor_name}</strong>
+                        <span className="badge badge-approved" style={{ fontSize: '0.65rem' }}>{apt.status}</span>
+                      </div>
+                      <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Dept: {apt.specialization}</p>
+                      <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Date: {apt.appointment_date} | Time: {apt.appointment_time}</p>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--accent-teal)', fontWeight: '700', display: 'block', marginTop: '0.25rem' }}>Code: {apt.appointment_code}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

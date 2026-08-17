@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: medipolicy_backend
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=production
+      - DATABASE_URL=sqlite:///./medipolicy_iq.db
+      - SECRET_KEY=medipolicy_iq_super_secret_jwt_key_2026_enterprise_healthcare_platform
+    volumes:
+      - backend_data:/app/data
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: medipolicy_frontend
+    command: streamlit run /app/frontend/streamlit_app.py --server.port 8501 --server.address 0.0.0.0
+    ports:
+      - "8501:8501"
+    depends_on:
+      - backend
+    environment:
+      - BACKEND_URL=http://backend:8000/api/v1
+
+volumes:
+  backend_data:
