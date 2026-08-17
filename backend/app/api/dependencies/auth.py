@@ -32,6 +32,8 @@ def get_current_user(
     return user
 
 
+from app.core.constants import ROLE_PERMISSIONS
+
 def require_role(allowed_roles: list[str]):
     """Role-Based Access Control (RBAC) dependency wrapper."""
     def role_checker(current_user: User = Depends(get_current_user)):
@@ -42,3 +44,17 @@ def require_role(allowed_roles: list[str]):
             )
         return current_user
     return role_checker
+
+
+def requires_permission(required_permission: str):
+    """Permission-Based Access Control (PBAC) dependency wrapper."""
+    def permission_checker(current_user: User = Depends(get_current_user)):
+        user_perms = ROLE_PERMISSIONS.get(current_user.role, [])
+        if required_permission not in user_perms and current_user.role != "admin":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Access denied. Required permission: '{required_permission}'"
+            )
+        return current_user
+    return permission_checker
+
